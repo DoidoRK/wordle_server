@@ -5,10 +5,17 @@
 #include <vector>
 #include <fstream>
 #include <string>
-
-#define MAX_WORD_LEN 5
+#include "config.h"
 
 using namespace std;
+
+int check(int exp, const char *msg) {
+    if(exp == SOCKETERROR) {
+        perror(msg);
+        exit(1);
+    }
+    return 0;
+}
 
 vector<uint8_t> stringToUint8Vector(const string& str) {
     vector<uint8_t> result;

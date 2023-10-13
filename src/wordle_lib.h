@@ -6,12 +6,9 @@
 #include <vector>
 #include <string>
 #include <cstdlib>
-#include <ctime>
 #include "utils.h"
 
 #define MAX_WORD_LEN 5
-
-using namespace std;
 
 string drawRandomStringFromFile(const string& filename) {
     ifstream file(filename);
