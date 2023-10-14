@@ -28,8 +28,8 @@ void * handleConnection(void *p_client_socket){
     time_t ticks;
     ticks = time (NULL);
     snprintf (buff, sizeof (buff), "%.24s\r\n", ctime(&ticks));
-
-    send(client_socket, &buff, sizeof(buff), 0);
+    // recv(client_socket, &buff, sizeof(buff), 0);
+    // send(client_socket, &buff, sizeof(buff), 0);
     close(client_socket);
     return NULL;
 };
