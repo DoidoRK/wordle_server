@@ -66,4 +66,39 @@ bool isCharacterInWord(const char character, const string& word) {
     return false;
 }
 
+int printServerMessage(){
+    string command = "hostname -I | cut -d' ' -f1";
+    string ipAddress;
+
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) {
+        cerr << "Command failed." << endl;
+        return -1;
+    }
+
+    char buffer[128];
+    while (!feof(pipe)) {
+        if (fgets(buffer, 128, pipe) != nullptr) {
+            ipAddress += buffer;
+        }
+    }
+    pclose(pipe);
+
+    //Remove trailing newline character if present
+    size_t newlinePos = ipAddress.find_last_not_of("\r\n");
+    if (newlinePos != std::string::npos) {
+        ipAddress = ipAddress.substr(0, newlinePos + 1);
+    }
+    
+    cout << "██╗    ██╗ ██████╗ ██████╗ ██████╗ ██╗     ███████╗" << endl;
+    cout << "██║    ██║██╔═══██╗██╔══██╗██╔══██╗██║     ██╔════╝" << endl;
+    cout << "██║ █╗ ██║██║   ██║██████╔╝██║  ██║██║     █████╗  " << endl;
+    cout << "██║███╗██║██║   ██║██╔══██╗██║  ██║██║     ██╔══╝  " << endl;
+    cout << "╚███╔███╔╝╚██████╔╝██║  ██║██████╔╝███████╗███████╗" << endl;
+    cout << " ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝" << endl;
+    cout << "Server Status: Online" << endl;
+    cout << "Server IP Address: " << ipAddress << ":" << SERVER_PORT << endl;
+    return 0;
+}
+
 #endif /* _UTILS_H_ */
