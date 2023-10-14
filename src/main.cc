@@ -17,6 +17,7 @@ pthread_t thread_pool[THREAD_POOL_SIZE];
 int connection_queue_count = 0;
 queue_t connection_queue;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t new_connection_arrived = PTHREAD_COND_INITIALIZER;
 
 void * handleConnection(void *p_client_socket){
     int client_socket = *((int*)p_client_socket);
@@ -34,8 +35,13 @@ void * handleConnection(void *p_client_socket){
 void * connectionThread(void* arg) {
     while (true)
     {
+        int *p_client_socket;
         pthread_mutex_lock(&queue_mutex);
-        int *p_client_socket = (int*)dequeue(&connection_queue);
+        if(NULL == (p_client_socket = (int*)dequeue(&connection_queue))){
+            //The threads will only wait for the signal if there is no work on the queue
+            pthread_cond_wait(&new_connection_arrived, &queue_mutex);
+        }
+        p_client_socket = (int*)dequeue(&connection_queue);
         if(NULL != p_client_socket){
             //New connection received.
             printf("Connection received!\n");
@@ -78,6 +84,7 @@ int main() {
         *pclient = client_socket;
         pthread_mutex_lock(&queue_mutex);
         enqueue(&connection_queue,pclient);
+        pthread_cond_signal(&new_connection_arrived);
         pthread_mutex_unlock(&queue_mutex);
     }
     return 0;
