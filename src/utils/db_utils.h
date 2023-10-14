@@ -1,14 +1,30 @@
-#ifndef _WORDLE_LIB_H_
-#define _WORDLE_LIB_H_
-#include <iostream>
-#include <inttypes.h>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <cstdlib>
-#include "utils.h"
+#ifndef _DB_UTLS_H_
+#define _DB_UTLS_H_
 
-#define MAX_WORD_LEN 5
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <unistd.h>
+#include <vector>
+
+using namespace std;
+
+bool searchStringInFile(const string& filename, const string& searchStr) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error: Unable to open the file." << endl;
+        return false;
+    }
+    string line;
+    while (getline(file, line)) {
+        if (line.find(searchStr) != string::npos) {
+            file.close();
+            return true;
+        }
+    }
+    file.close();
+    return false;
+}
 
 string drawRandomStringFromFile(const string& filename) {
     ifstream file(filename);
@@ -43,18 +59,4 @@ string drawRandomStringFromFile(const string& filename) {
     return strings[randomIndex];
 }
 
-vector<uint8_t> checkCharactersInWord(const string& guess, const string& word) {
-    vector<uint8_t> differences(MAX_WORD_LEN, 0);
-    for (uint8_t i = 0; i < MAX_WORD_LEN; ++i) {
-        if (guess[i] == word[i]) {
-            differences[i] = 1;
-        } else {
-            if(isCharacterInWord(guess[i], word)){
-                differences[i] = 2;
-            }
-        }
-    }
-    return differences;
-}
-
-#endif /* _WORDLE_LIB_H_ */
+#endif /* _DB_UTLS_H_ */

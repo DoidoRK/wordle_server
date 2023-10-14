@@ -2,21 +2,20 @@
 #define _CONFIG_H_
 
 //DB settings
-#define WORDBANK_PATH "src/db/wordbank.txt"
+#define WORDBANK_PATH "db/wordbank.txt"
 
 //Connection settings
 #define SERVER_PORT 8080
-#define SOCKETERROR (-1)
 #define MAX_CONNECTIONS 100
+
+//Thread Pool Settings
+#define THREAD_POOL_SIZE 20
 
 //Wordle settings.
 #define MAX_ATTEMPTS 6
 #define USERNAME_LEN 64
 #define WORD_SIZE 5
 #define HIGHSCORE_PLAYER_NUM 5
-
-//Thread Pool Settings
-#define THREAD_POOL_SIZE 20
 
 typedef struct attempt_struct{
     uint8_t word[WORD_SIZE];

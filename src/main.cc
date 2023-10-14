@@ -8,10 +8,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include "wordle_lib.h"
-#include "queue.h"
+#include "libs/queue.h"
 #include "config.h"
-#include "utils.h"
+#include "utils/network_utils.h"
 
 pthread_t thread_pool[THREAD_POOL_SIZE];
 int connection_queue_count = 0;
@@ -22,11 +21,14 @@ pthread_cond_t new_connection_arrived = PTHREAD_COND_INITIALIZER;
 void * handleConnection(void *p_client_socket){
     int client_socket = *((int*)p_client_socket);
     free((int*)p_client_socket);
+
+    // recv(server_socket, &buff, sizeof(buff), 0);
     int N=30;
     char buff[N];
     time_t ticks;
     ticks = time (NULL);
     snprintf (buff, sizeof (buff), "%.24s\r\n", ctime(&ticks));
+
     send(client_socket, &buff, sizeof(buff), 0);
     close(client_socket);
     return NULL;
@@ -40,11 +42,10 @@ void * connectionThread(void* arg) {
         if(NULL == (p_client_socket = (int*)dequeue(&connection_queue))){
             //The threads will only wait for the signal if there is no work on the queue
             pthread_cond_wait(&new_connection_arrived, &queue_mutex);
+            p_client_socket = (int*)dequeue(&connection_queue);
         }
-        p_client_socket = (int*)dequeue(&connection_queue);
         if(NULL != p_client_socket){
             //New connection received.
-            printf("Connection received!\n");
             handleConnection(p_client_socket);
         }
         pthread_mutex_unlock(&queue_mutex);
@@ -74,16 +75,15 @@ int main() {
     
     /* Waits for connections */
     check((listen(server_socket,MAX_CONNECTIONS)), "Failed to listen");
-    if(-1 == printServerMessage()){
+    if(-1 == serverMessage(to_string(SERVER_PORT))){
         cout << "Failed to get server IP address!" << endl;
     };
     while (1) {
         check((client_socket = accept(server_socket,(struct sockaddr *)0,0)),"Accept Failed");
-        //Sends connection to Queue
         int *pclient = (int*)malloc(sizeof(int));
         *pclient = client_socket;
         pthread_mutex_lock(&queue_mutex);
-        enqueue(&connection_queue,pclient);
+        enqueue(&connection_queue,pclient); //Sends connection to Queue
         pthread_cond_signal(&new_connection_arrived);
         pthread_mutex_unlock(&queue_mutex);
     }
