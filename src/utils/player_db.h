@@ -66,13 +66,13 @@ int getPlayerScore(const string& player_name) {
 }
 
 // Updates a player's score.
-void updatePlayerScore(const string& player_name, int new_score) {
+void updatePlayerScore(const string& player_name, int attempt_score) {
     if (player_database.find(player_name) != player_database.end()) {
         pthread_mutex_lock(&player_database_mutex);
-        player_database[player_name] = new_score;
+        player_database[player_name] += attempt_score;
         pthread_mutex_unlock(&player_database_mutex);
         savePlayerDatabase(); // Save the updated database to the file
-        cout << "Added " << new_score << " to player '" << player_name << "'." << endl;
+        cout << "Added " << attempt_score << " to player '" << player_name << "'." << endl;
     } else {
         cout << "Player '" << player_name << "' not found in the database." << endl;
     }
