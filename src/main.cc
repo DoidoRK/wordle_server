@@ -7,10 +7,11 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <semaphore.h>
-#include "libs/queue.h"
 #include "config.h"
+#include "wordle.h"
 #include "utils/network_utils.h"
+#include "libs/queue.h"
+#include "libs/conio_linux.h"
 
 pthread_t thread_pool[THREAD_POOL_SIZE];
 int connection_queue_count = 0;
@@ -21,15 +22,14 @@ pthread_cond_t new_connection_arrived = PTHREAD_COND_INITIALIZER;
 void * handleConnection(void *p_client_socket){
     int client_socket = *((int*)p_client_socket);
     free((int*)p_client_socket);
+    data_packet_t message, response;
 
-    // recv(server_socket, &buff, sizeof(buff), 0);
-    int N=30;
-    char buff[N];
-    time_t ticks;
-    ticks = time (NULL);
-    snprintf (buff, sizeof (buff), "%.24s\r\n", ctime(&ticks));
-    // recv(client_socket, &buff, sizeof(buff), 0);
-    // send(client_socket, &buff, sizeof(buff), 0);
+    recv(client_socket, &message, sizeof(data_packet_t), 0);
+
+    response = threatMessage(message);
+
+    send(client_socket, &response, sizeof(data_packet_t), 0);
+
     close(client_socket);
     return NULL;
 };
@@ -55,6 +55,8 @@ void * connectionThread(void* arg) {
 int main() {
     int server_socket, client_socket;
     struct sockaddr_in server_addr;
+
+    clrscr();
 
     init_queue(&connection_queue);
 
