@@ -13,10 +13,14 @@
 #include "libs/queue.h"
 #include "libs/conio_linux.h"
 
+//Thread pool to reduce server memory usage.
 pthread_t thread_pool[THREAD_POOL_SIZE];
-int connection_queue_count = 0;
+
+//Queue to store received connections and threat them as the threads get ready.
 queue_t connection_queue;
 pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+//Conditional variable to wake up threads when work is needed to be done.
 pthread_cond_t new_connection_arrived = PTHREAD_COND_INITIALIZER;
 
 void * handleConnection(void *p_client_socket){

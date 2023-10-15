@@ -5,37 +5,44 @@
 #include <fstream>
 #include <string>
 #include <vector>
-
+#include <pthread.h>
 
 //DB settings
 #define WORDBANK_PATH "db/wordbank.txt"
 
 using namespace std;
 
-
+//Mutex to control threads access to playerbase
+pthread_mutex_t wordbank_db_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 //*************************************************
 //*               WORDBANK FUNCTIONS              *
 //*************************************************
 
-bool searchStringInFile(const string& searchStr) {
+bool searchStringInFile(const string& search_str) {
+    pthread_mutex_lock(&wordbank_db_mutex);
     ifstream file(WORDBANK_PATH);
     if (!file.is_open()) {
         cerr << "Error: Unable to open the file." << endl;
+        pthread_mutex_unlock(&wordbank_db_mutex);
         return false;
     }
     string line;
     while (getline(file, line)) {
-        if (line.find(searchStr) != string::npos) {
+        if (line.find(search_str) != string::npos) {
             file.close();
+            pthread_mutex_unlock(&wordbank_db_mutex);
             return true;
         }
     }
     file.close();
+    pthread_mutex_unlock(&wordbank_db_mutex);
     return false;
+
 }
 
 string drawRandomStringFromFile() {
+    pthread_mutex_lock(&wordbank_db_mutex);
     ifstream file(WORDBANK_PATH);
     if (!file.is_open()) {
         cerr << "Error: Unable to open the file." << endl;
@@ -52,6 +59,7 @@ string drawRandomStringFromFile() {
 
     // Close the file
     file.close();
+    pthread_mutex_unlock(&wordbank_db_mutex);
 
     // Seed the random number generator with the current time
     srand(static_cast<unsigned>(time(nullptr)));
@@ -62,10 +70,11 @@ string drawRandomStringFromFile() {
     }
 
     // Generate a random index to select a string from the vector
-    int randomIndex = rand() % strings.size();
+    int random_index = rand() % strings.size();
 
     // Return the randomly selected string
-    return strings[randomIndex];
+    return strings[random_index];
+
 }
 
 bool isCharacterInWord(const char character, const string& word) {
@@ -77,9 +86,9 @@ bool isCharacterInWord(const char character, const string& word) {
     return false;
 }
 
-vector<uint8_t> checkCharactersInWord(const string& guess, const string& word, int MAX_WORD_LEN) {
-    vector<uint8_t> differences(MAX_WORD_LEN, 0);
-    for (uint8_t i = 0; i < MAX_WORD_LEN; ++i) {
+vector<uint8_t> checkCharactersInWord(const string& guess, const string& word, int max_word_len) {
+    vector<uint8_t> differences(max_word_len, 0);
+    for (uint8_t i = 0; i < max_word_len; ++i) {
         if (guess[i] == word[i]) {
             differences[i] = 1;
         } else {

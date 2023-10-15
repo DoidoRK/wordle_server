@@ -18,8 +18,6 @@ string  printMessage(long unsigned int message) {
     }
 }
 
-
-
 data_packet_t threatMessage(data_packet_t received_data){
     data_packet_t response;
     cout << "Message:" << printMessage(received_data.message_type) << endl;
