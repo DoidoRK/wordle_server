@@ -18,7 +18,7 @@ map<string, int> player_database;
 //Mutex to control threads access to playerbase db
 pthread_mutex_t player_database_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Load the player database from the CSV file
+// Loads the player database from the CSV file
 void loadPlayerDatabase() {
     pthread_mutex_lock(&player_database_mutex);
     ifstream file(PLAYER_BASE_PATH);
@@ -65,6 +65,7 @@ int getPlayerScore(const string& player_name) {
     }
 }
 
+// Updates a player's score.
 void updatePlayerScore(const string& player_name, int new_score) {
     if (player_database.find(player_name) != player_database.end()) {
         pthread_mutex_lock(&player_database_mutex);

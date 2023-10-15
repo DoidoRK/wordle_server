@@ -15,10 +15,6 @@ using namespace std;
 //Mutex to control threads access to playerbase
 pthread_mutex_t wordbank_db_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-//*************************************************
-//*               WORDBANK FUNCTIONS              *
-//*************************************************
-
 bool searchStringInFile(const string& search_str) {
     pthread_mutex_lock(&wordbank_db_mutex);
     ifstream file(WORDBANK_PATH);

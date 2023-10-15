@@ -62,6 +62,8 @@ int main() {
 
     clrscr();
 
+    initWordle();
+
     init_queue(&connection_queue);
 
     //Creates server threads to handle future connections.

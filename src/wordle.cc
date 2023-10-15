@@ -1,7 +1,8 @@
 #include <string.h>
 #include "wordle.h"
-#include "utils/string_utils.h"
-#include "utils/db_utils.h"
+#include "utils/player_db.h"
+#include "utils/wordbank.h"
+#include "utils/ranking_db.h"
 
 const char* MESSAGE_STRINGS[] = {
     "PLAYER_JOINED",
@@ -18,6 +19,26 @@ string  printMessage(long unsigned int message) {
     }
 }
 
+void initWordle(){
+    loadPlayerDatabase();
+}
+
+data_packet_t playerJoined(data_packet_t received_data){
+    //Check if player is in playerbase.
+    //If it is in the playerbase:
+    //  Sends back the player score;
+    //  Draws a word for that player and starts a session;
+    //If it isn't:
+    //  Adds player to the DB;
+    //  Draws a word for that player and starts a session;
+    //Response type expected: PLAYER_NEW_WORD
+    data_packet_t response;
+    response.player.score = getPlayerScore(received_data.player.username);
+    response.message_type = PLAYER_NEW_WORD;
+    memcpy(response.player.username,received_data.player.username, sizeof(char[MAX_USERNAME_LEN]));
+    return response;
+}
+
 data_packet_t threatMessage(data_packet_t received_data){
     data_packet_t response;
     cout << "Message:" << printMessage(received_data.message_type) << endl;
@@ -27,17 +48,7 @@ data_packet_t threatMessage(data_packet_t received_data){
     switch (received_data.message_type)
     {
     case PLAYER_JOINED:
-        //Check if player is in playerbase.
-        //If it is in the playerbase:
-        //  Sends back the player score;
-        //  Draws a word for that player and starts a session;
-        //If it isn't:
-        //  Adds player to the DB;
-        //  Draws a word for that player and starts a session;
-        //Response type expected: PLAYER_NEW_WORD
-        response.message_type = PLAYER_NEW_WORD;
-        memcpy(response.player.username,received_data.player.username, sizeof(char[MAX_USERNAME_LEN]));
-        response.player.score = 100;
+        response = playerJoined(received_data);
         break;
     
     case PLAYER_NEW_WORD:
