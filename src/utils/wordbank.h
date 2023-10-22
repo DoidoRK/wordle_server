@@ -50,9 +50,8 @@ bool searchWordInFile(const char word[WORD_SIZE]) {
         return false;
     }
 
-    char line[WORD_SIZE];
-
-    while (file.getline(line, WORD_SIZE)){
+    string line;
+    while (getline(file, line)){
         string trimmedLine = line;
         trimmedLine = toUpperCase(trimmedLine); // Ensure case-insensitive comparison
         trimmedLine = trim(trimmedLine);
