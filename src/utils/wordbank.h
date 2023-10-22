@@ -5,18 +5,38 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <map>
 #include <pthread.h>
+#include <cstring> // Added for string manipulation
 
-//DB settings
 #define WORDBANK_PATH "db/wordbank.txt"
 
 using namespace std;
 
-//Mutex to control threads access to playerbase
 pthread_mutex_t wordbank_db_mutex = PTHREAD_MUTEX_INITIALIZER;
-map<string, string> players_words;  //Stores the player name and the word drawn for the player.
+map<string, char[WORD_SIZE]> players_words; // Use 'string' for keys
 
-bool searchWordInFile(const string& search_str) {
+#include <cctype>  // for std::toupper
+#include <algorithm>  // for std::transform
+
+// Convert a string to uppercase
+std::string toUpperCase(const std::string& str) {
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(), ::toupper);
+    return result;
+}
+
+// Trim leading and trailing whitespace from a string
+std::string trim(const std::string& str) {
+    size_t first = str.find_first_not_of(" \t\n\r");
+    if (first == std::string::npos) {
+        return "";
+    }
+    size_t last = str.find_last_not_of(" \t\n\r");
+    return str.substr(first, (last - first + 1));
+}
+
+bool searchWordInFile(const char word[WORD_SIZE]) {
     pthread_mutex_lock(&wordbank_db_mutex);
     ifstream file(WORDBANK_PATH);
     if (!file.is_open()) {
@@ -24,16 +44,25 @@ bool searchWordInFile(const string& search_str) {
         pthread_mutex_unlock(&wordbank_db_mutex);
         return false;
     }
-    string line;
-    while (getline(file, line)) {
-        if (line.find(search_str) != string::npos) {
+
+    char line[WORD_SIZE];
+    while (file.getline(line, WORD_SIZE)) {
+        // Trim any leading and trailing whitespace from the line
+        string trimmedLine = line;
+        trimmedLine = toUpperCase(trimmedLine); // Ensure case-insensitive comparison
+        trimmedLine = trim(trimmedLine);
+
+        if (strcasecmp(trimmedLine.c_str(), word) == 0) {
             file.close();
             pthread_mutex_unlock(&wordbank_db_mutex);
+            cout << "ACHOU A PALAVRA!" << endl;
             return true;
         }
     }
+
     file.close();
     pthread_mutex_unlock(&wordbank_db_mutex);
+    cout << "NÃO ACHOU A PALAVRA!" << endl;
     return false;
 }
 
@@ -49,15 +78,12 @@ string drawRandomWordFromFile() {
     vector<string> strings;
     string line;
 
-    // Read each line from the file and store it in the vector
     while (getline(file, line)) {
         strings.push_back(line);
     }
 
-    // Close the file
     file.close();
 
-    // Seed the random number generator with the current time
     srand(static_cast<unsigned>(time(nullptr)));
 
     if (strings.empty()) {
@@ -66,10 +92,8 @@ string drawRandomWordFromFile() {
         return "";
     }
 
-    // Generate a random index to select a string from the vector
     int random_index = rand() % strings.size();
 
-    // Return the randomly selected string
     pthread_mutex_unlock(&wordbank_db_mutex);
     return strings[random_index];
 }
@@ -84,32 +108,44 @@ bool isCharacterInWord(const char character, const string& word) {
 }
 
 int* checkCharactersInWord(const string& guess, const string& word, int max_word_len) {
-    int differences[WORD_SIZE];
+    static int differences[WORD_SIZE];
     for (int i = 0; i < max_word_len; ++i) {
         if (guess[i] == word[i]) {
             differences[i] = 1;
         } else {
-            if(isCharacterInWord(guess[i], word)){
+            if (isCharacterInWord(guess[i], word)) {
                 differences[i] = 2;
             }
         }
     }
+    printf("Vai retornar as diferenças");
     return differences;
 }
 
-void updatePlayersWords(const string& player_name){
+void updatePlayersWords(char player_name[MAX_PLAYERNAME_SIZE]) {
     string new_word = drawRandomWordFromFile();
-    cout << "Player:" << player_name << " Word Drawn: " << new_word << endl;
+    cout << "Player: " << player_name << " Word Drawn: " << new_word << endl;
     pthread_mutex_lock(&wordbank_db_mutex);
-    players_words[player_name] = new_word;
+
+    char new_word_cstr[WORD_SIZE];
+    strncpy(new_word_cstr, new_word.c_str(), WORD_SIZE - 1);
+    new_word_cstr[WORD_SIZE - 1] = '\0';
+    
+    // Update the players_words map with the char array
+    strncpy(players_words[player_name], new_word_cstr, WORD_SIZE);
+    
     pthread_mutex_unlock(&wordbank_db_mutex);
 }
 
-string getRightWordForPlayer(const string& player_name){
-    if(players_words.find(player_name) != players_words.end()){
-        return players_words[player_name];
+void getRightWordForPlayer(const string& player_name, char word[WORD_SIZE], size_t word_size) {
+    auto it = players_words.find(player_name);
+    cout << "Jogador:" << player_name << endl;
+    if (it != players_words.end()) {
+        const char* player_word = it->second;
+        strncpy(word, player_word, word_size - 1);
+        word[word_size - 1] = '\0';
     } else {
-        return "";
+        strncpy(word, "", word_size);
     }
 }
 

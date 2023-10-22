@@ -19,11 +19,6 @@ enum MESSAGES {
     //The player attempt shouldn't count
     INVALID_ATTEMPT_WORD,
 
-    //If the player is a new player, adds the player to the player list with score 0.
-    //If the player already exists in the DB, returns the player score.
-    //Sorts a new word for that player.
-    PLAYER_JOINED,
-
     //If the player failed to guess the right word, the server draws a new word for him.
     //If the player succeeded to guess the right word, the server adds to the player score and draws a new word
     PLAYER_NEW_WORD,
