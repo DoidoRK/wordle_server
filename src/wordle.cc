@@ -25,18 +25,10 @@ void initWordle(){
 }
 
 data_packet_t playerJoined(data_packet_t received_data){
-    //Check if player is in playerbase.
-    //If it is in the playerbase:
-    //  Sends back the player score;
-    //  Draws a word for that player and starts a session;
-    //If it isn't:
-    //  Adds player to the DB;
-    //  Draws a word for that player and starts a session;
-    //Response type expected: PLAYER_NEW_WORD
     data_packet_t response;
     response.player.score = getPlayerScore(received_data.player.username);
     response.message_type = PLAYER_NEW_WORD;
-    memcpy(response.player.username,received_data.player.username, sizeof(char[MAX_USERNAME_LEN]));
+    response.player.username = received_data.player.username;
     updatePlayersWords(response.player.username);
     return response;
 }
@@ -45,7 +37,7 @@ data_packet_t playerNewWord(data_packet_t received_data){
     data_packet_t response;
     response.player.score = getPlayerScore(received_data.player.username);
     response.message_type = PLAYER_NEW_WORD;
-    memcpy(response.player.username,received_data.player.username, sizeof(char[MAX_USERNAME_LEN]));
+    response.player.username = received_data.player.username;
     updatePlayersWords(response.player.username);
     return response;
 }
@@ -56,7 +48,8 @@ data_packet_t playerAttempt(data_packet_t received_data){
         if(searchWordInFile(received_data.player.current_attempt.word)){
             string right_word = getRightWordForPlayer(received_data.player.username);
             if(!right_word.empty()){
-                int attempt_answer[WORD_SIZE], score_to_add = 0;
+                int attempt_answer[WORD_SIZE];
+                int score_to_add = 0;
                 memcpy(attempt_answer, checkCharactersInWord(received_data.player.current_attempt.word, right_word, WORD_SIZE), WORD_SIZE);
                 for (int result : attempt_answer)
                 {
@@ -69,8 +62,10 @@ data_packet_t playerAttempt(data_packet_t received_data){
                 if (score_to_add)
                 {
                     updatePlayerScore(received_data.player.username, score_to_add);
+                    response.player.score = getPlayerScore(received_data.player.username);
                 }
-                memcpy(received_data.player.current_attempt.colors,attempt_answer,WORD_SIZE);
+                memcpy(response.player.current_attempt.colors,attempt_answer,WORD_SIZE);
+                response.message_type = PLAYER_ATTEMPT;
             } else {
                 cout << "Unknown Player " << received_data.player.username << " tried to attempt an word" << endl;
                 response.message_type = INVALID_MESSAGE_TYPE;
@@ -83,6 +78,7 @@ data_packet_t playerAttempt(data_packet_t received_data){
         cout << received_data.player.attempt_n << " attempts" << endl;
         response.message_type = INVALID_MESSAGE_TYPE;
     }
+    return response;
 }
 
 data_packet_t threatMessage(data_packet_t received_data){
