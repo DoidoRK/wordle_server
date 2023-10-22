@@ -28,12 +28,7 @@ void * handleConnection(void *p_client_socket){
     free((int*)p_client_socket);
     data_packet_t message, response;
     recv(client_socket, &message, sizeof(data_packet_t), 0);
-    printf("Recebeu os dados");
-    printf("%s\n",message.player.username);
-    printf("%d\n",message.player.score);
-    printf("%d\n",message.player.attempt_n);
-    // response = threatMessage(message);
-    response.message_type = INVALID_MESSAGE_TYPE;
+    response = threatMessage(message);
 
     send(client_socket, &response, sizeof(data_packet_t), 0);
 
