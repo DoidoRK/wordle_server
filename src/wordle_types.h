@@ -2,10 +2,10 @@
 #define _WORDLE_TYPES_H_
 
 #include <iostream>
-#include <string.h>
 
 //Wordle settings.
 #define MAX_ATTEMPTS 6
+#define MAX_PLAYERNAME_SIZE 32
 #define WORD_SIZE 5
 #define HIGHSCORE_PLAYER_NUM 5
 #define HIGHSCORE_SIZE 5
@@ -36,19 +36,19 @@ enum MESSAGES {
 };
 
 typedef struct attempt_struct{
-    string word;
+    char word[WORD_SIZE];
     int colors[WORD_SIZE];
 } attempt_t;
 
 typedef struct user_struct{
-    string username;
+    char username[MAX_PLAYERNAME_SIZE];
     int attempt_n;
     int score;
     attempt_t current_attempt;
 } user_t;
 
 typedef struct highscore_struct{
-    string username;
+    char username[MAX_PLAYERNAME_SIZE];
     int score;
 } highscore_t;
 

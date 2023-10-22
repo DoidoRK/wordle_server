@@ -28,7 +28,7 @@ data_packet_t playerJoined(data_packet_t received_data){
     data_packet_t response;
     response.player.score = getPlayerScore(received_data.player.username);
     response.message_type = PLAYER_NEW_WORD;
-    response.player.username = received_data.player.username;
+    strncpy(response.player.username,received_data.player.username,MAX_PLAYERNAME_SIZE);
     updatePlayersWords(response.player.username);
     return response;
 }
@@ -37,7 +37,7 @@ data_packet_t playerNewWord(data_packet_t received_data){
     data_packet_t response;
     response.player.score = getPlayerScore(received_data.player.username);
     response.message_type = PLAYER_NEW_WORD;
-    response.player.username = received_data.player.username;
+    strncpy(response.player.username,received_data.player.username,MAX_PLAYERNAME_SIZE);
     updatePlayersWords(response.player.username);
     return response;
 }
@@ -83,10 +83,10 @@ data_packet_t playerAttempt(data_packet_t received_data){
 
 data_packet_t threatMessage(data_packet_t received_data){
     data_packet_t response;
+    printf("Entrou no thread message");
     cout << "Message:" << printMessage(received_data.message_type) << endl;
     cout << "*******PLAYER INFO*******"<< endl;
     cout << "Player name: " << received_data.player.username << endl;
-
     switch (received_data.message_type)
     {
     case PLAYER_JOINED:
