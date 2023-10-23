@@ -25,13 +25,24 @@ void initWordle(){
 }
 
 void calculateAttemptAnswer(const char* attempt, const char* right_word, int* attempt_answer, size_t word_size) {
+    // Initialize the attempt_answer array to all wrong
+    for (size_t i = 0; i < word_size; i++) {
+        attempt_answer[i] = CHARACTER_IS_WRONG;
+    }
+    // First, find and mark the correct characters in the correct positions
     for (size_t i = 0; i < word_size; i++) {
         if (attempt[i] == right_word[i]) {
+            cout << attempt[i] << endl;
             attempt_answer[i] = CHARACTER_IS_CORRECT;
-        } else {
+        }
+    }
+    // Then, find and mark characters that are correct but in the wrong position
+    for (size_t i = 0; i < word_size; i++) {
+        if (attempt_answer[i] != CHARACTER_IS_CORRECT) {
             for (size_t j = 0; j < word_size; j++) {
-                if (attempt[i] == right_word[j] && attempt_answer[i] != CHARACTER_IS_CORRECT) {
+                if (i != j && attempt[i] == right_word[j] && attempt_answer[j] != CHARACTER_IS_CORRECT) {
                     attempt_answer[i] = CHARACTER_IS_IN_WORD;
+                    break;
                 }
             }
         }
@@ -81,13 +92,14 @@ data_packet_t playerAttempt(data_packet_t received_data){
     int attempt_answer[WORD_SIZE];
     int score_to_add = 0;
     calculateAttemptAnswer(attemptWord, right_word, attempt_answer, WORD_SIZE);
-    for (int result : attempt_answer) {
-        if (result == CHARACTER_IS_IN_WORD) {
+    for (int i = 0; i < WORD_SIZE; i++)
+    {
+        if (attempt_answer[i] == CHARACTER_IS_IN_WORD) {
             score_to_add += CHARACTER_IS_IN_WORD_SCORE;
-        } else if (result == CHARACTER_IS_CORRECT) {
+        } else if (attempt_answer[i] == CHARACTER_IS_CORRECT) {
             score_to_add += CHARACTER_IS_CORRECT_SCORE;
         }
-        cout << result << endl;
+        cout << attempt_answer[i] << endl;
     }
     cout << "Player: "<< username << " score:" << score_to_add << endl;
 
