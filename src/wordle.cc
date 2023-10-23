@@ -25,19 +25,13 @@ void initWordle(){
 }
 
 void calculateAttemptAnswer(const char* attempt, const char* right_word, int* attempt_answer, size_t word_size) {
-    // Initialize the attempt_answer array to all zeros
-    memset(attempt_answer, 0, word_size * sizeof(int));
-
-    // Compare the attempt word to the right word character by character
     for (size_t i = 0; i < word_size; i++) {
         if (attempt[i] == right_word[i]) {
-            // Character matches exactly
-            attempt_answer[i] = 2; // Set to 2 for an exact match
+            attempt_answer[i] = CHARACTER_IS_CORRECT;
         } else {
             for (size_t j = 0; j < word_size; j++) {
-                if (attempt[i] == right_word[j] && attempt_answer[i] == 0) {
-                    // Character matches but not in the same position
-                    attempt_answer[i] = 1; // Set to 1 for a match in a different position
+                if (attempt[i] == right_word[j] && attempt_answer[i] != CHARACTER_IS_CORRECT) {
+                    attempt_answer[i] = CHARACTER_IS_IN_WORD;
                 }
             }
         }
@@ -56,42 +50,65 @@ data_packet_t playerNewWord(data_packet_t received_data){
 
 data_packet_t playerAttempt(data_packet_t received_data){
     data_packet_t response;
-    if(received_data.player.attempt_n < MAX_ATTEMPTS){
-        if(searchWordInFile(received_data.player.current_attempt.word)){
-            char right_word[WORD_SIZE];
-            getRightWordForPlayer(received_data.player.username, right_word, WORD_SIZE);
-            printf("Palavra: %s", right_word);
-            if (right_word[0] != '\0') {
-                int attempt_answer[WORD_SIZE];
-                int score_to_add = 0;
-                calculateAttemptAnswer(received_data.player.current_attempt.word, right_word, attempt_answer, WORD_SIZE);
-                for (int result : attempt_answer)
-                {
-                    if(result == 2){
-                        score_to_add += 2;
-                    } else if(result == 1){
-                        score_to_add += 5;
-                    }
-                }
-                if (score_to_add)
-                {
-                    updatePlayerScore(received_data.player.username, score_to_add);
-                    response.player.score = getPlayerScore(received_data.player.username);
-                }
-                memcpy(response.player.current_attempt.colors,attempt_answer,WORD_SIZE);
-                response.message_type = PLAYER_ATTEMPT;
-            } else {
-                cout << "Unknown Player " << received_data.player.username << " tried to attempt an word" << endl;
-                response.message_type = INVALID_MESSAGE_TYPE;
-            }
-        } else {
-            response.message_type = INVALID_ATTEMPT_WORD;
-        }
-    } else {
-        cout << "Player " << received_data.player.username << " tried to have more attempts than allowed: ";
-        cout << received_data.player.attempt_n << " attempts" << endl;
+    const char* username = received_data.player.username;
+    const char* attemptWord = received_data.player.current_attempt.word;
+    const int attemptNumber = received_data.player.attempt_n;
+
+    // Check if the player exceeded the maximum attempts
+    if (attemptNumber >= MAX_ATTEMPTS) {
+        cout << "Player " << username << " tried to have more attempts than allowed: " << attemptNumber << " attempts" << endl;
         response.message_type = INVALID_MESSAGE_TYPE;
+        response.player.score = getPlayerScore(username);
+        return response;
     }
+
+    // Check if the player's word is valid
+    if (!searchWordInFile(attemptWord)) {
+        response.message_type = INVALID_ATTEMPT_WORD;
+        response.player.score = getPlayerScore(username);
+        return response;
+    }
+
+    char right_word[WORD_SIZE];
+    getRightWordForPlayer(username, right_word, WORD_SIZE);
+
+    if (right_word[0] == '\0') {
+        cout << "Unknown Player " << username << " tried to attempt an invalid word: " << attemptWord << endl;
+        response.message_type = INVALID_MESSAGE_TYPE;
+        return response;
+    }
+
+    int attempt_answer[WORD_SIZE];
+    int score_to_add = 0;
+    calculateAttemptAnswer(attemptWord, right_word, attempt_answer, WORD_SIZE);
+    for (int result : attempt_answer) {
+        if (result == CHARACTER_IS_IN_WORD) {
+            score_to_add += CHARACTER_IS_IN_WORD_SCORE;
+        } else if (result == CHARACTER_IS_CORRECT) {
+            score_to_add += CHARACTER_IS_CORRECT_SCORE;
+        }
+        cout << result << endl;
+    }
+    cout << "Player: "<< username << " score:" << score_to_add << endl;
+
+    // Check if it's the last attempt
+    if (attemptNumber == MAX_ATTEMPTS - 1) {
+        response.message_type = PLAYER_NEW_WORD;
+    } else if (score_to_add == (WORD_SIZE * CHARACTER_IS_CORRECT_SCORE)) {
+        response.message_type = PLAYER_NEW_WORD;
+    } else {
+        response.message_type = PLAYER_ATTEMPT;
+    }
+
+    if ( 0 < score_to_add) {
+        updatePlayerScore(username, score_to_add);
+    }
+    response.player.score = getPlayerScore(username);
+
+    if (response.message_type == PLAYER_NEW_WORD) {
+        updatePlayersWords(username);
+    }
+
     return response;
 }
 
@@ -109,6 +126,7 @@ data_packet_t threatMessage(data_packet_t received_data){
         case PLAYER_ATTEMPT:
             //Verifies if the player attempt is less than the maximun attempts.
             //Checks if the received word is the same as the word chosen for the player.
+            
             response = playerAttempt(received_data);
             break;
 

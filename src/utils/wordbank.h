@@ -55,8 +55,6 @@ bool searchWordInFile(const char word[WORD_SIZE]) {
         string trimmedLine = line;
         trimmedLine = toUpperCase(trimmedLine); // Ensure case-insensitive comparison
         trimmedLine = trim(trimmedLine);
-        cout << "Searching inside file..." << trimmedLine << endl;
-        // Remove newline characters if they exist in the line
         trimmedLine.erase(remove(trimmedLine.begin(), trimmedLine.end(), '\n'), trimmedLine.end());
 
         if (strcasecmp(trimmedLine.c_str(), word) == 0) {
@@ -128,7 +126,7 @@ int* checkCharactersInWord(const string& guess, const string& word, int max_word
     return differences;
 }
 
-void updatePlayersWords(char player_name[MAX_PLAYERNAME_SIZE]) {
+void updatePlayersWords(const char player_name[MAX_PLAYERNAME_SIZE]) {
     string new_word = drawRandomWordFromFile();
     cout << "Player: " << player_name << " Word Drawn: " << new_word << endl;
     pthread_mutex_lock(&wordbank_db_mutex);
@@ -145,7 +143,6 @@ void updatePlayersWords(char player_name[MAX_PLAYERNAME_SIZE]) {
 
 void getRightWordForPlayer(const string& player_name, char word[WORD_SIZE], size_t word_size) {
     auto it = players_words.find(player_name);
-    cout << "Jogador:" << player_name << endl;
     if (it != players_words.end()) {
         const char* player_word = it->second;
         strncpy(word, player_word, word_size - 1);
