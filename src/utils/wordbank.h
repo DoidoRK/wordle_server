@@ -52,12 +52,12 @@ bool searchWordInFile(const char word[WORD_SIZE]) {
 
     string line;
     while (getline(file, line)){
-        string trimmedLine = line;
-        trimmedLine = toUpperCase(trimmedLine); // Ensure case-insensitive comparison
-        trimmedLine = trim(trimmedLine);
-        trimmedLine.erase(remove(trimmedLine.begin(), trimmedLine.end(), '\n'), trimmedLine.end());
+        string trimmed_line = line;
+        trimmed_line = toUpperCase(trimmed_line); // Ensure case-insensitive comparison
+        trimmed_line = trim(trimmed_line);
+        trimmed_line.erase(remove(trimmed_line.begin(), trimmed_line.end(), '\n'), trimmed_line.end());
 
-        if (strcasecmp(trimmedLine.c_str(), word) == 0) {
+        if (strcasecmp(trimmed_line.c_str(), word) == 0) {
             file.close();
             pthread_mutex_unlock(&wordbank_db_mutex);
             cout << "Word search finished, Word found: " << word << endl;
@@ -102,42 +102,12 @@ string drawRandomWordFromFile() {
     return strings[random_index];
 }
 
-bool isCharacterInWord(const char character, const string& word) {
-    for (char c : word) {
-        if (c == character) {
-            return true;
-        }
-    }
-    return false;
-}
-
-int* checkCharactersInWord(const string& guess, const string& word, int max_word_len) {
-    static int differences[WORD_SIZE];
-    for (int i = 0; i < max_word_len; ++i) {
-        if (guess[i] == word[i]) {
-            differences[i] = 1;
-        } else {
-            if (isCharacterInWord(guess[i], word)) {
-                differences[i] = 2;
-            }
-        }
-    }
-    printf("Vai retornar as diferenças");
-    return differences;
-}
-
-void updatePlayersWords(const char player_name[MAX_PLAYERNAME_SIZE]) {
+void updatePlayersWords(const char player_name[MAX_PLAYERNAME_SIZE], size_t word_size) {
     string new_word = drawRandomWordFromFile();
-    cout << "Player: " << player_name << " Word Drawn: " << new_word << endl;
     pthread_mutex_lock(&wordbank_db_mutex);
-
     char new_word_cstr[WORD_SIZE];
-    strncpy(new_word_cstr, new_word.c_str(), WORD_SIZE - 1);
-    new_word_cstr[WORD_SIZE - 1] = '\0';
-    
-    // Update the players_words map with the char array
-    strncpy(players_words[player_name], new_word_cstr, WORD_SIZE);
-    
+    strncpy(new_word_cstr, new_word.c_str(), word_size);
+    strncpy(players_words[player_name], new_word_cstr, word_size);
     pthread_mutex_unlock(&wordbank_db_mutex);
 }
 
@@ -145,8 +115,7 @@ void getRightWordForPlayer(const string& player_name, char word[WORD_SIZE], size
     auto it = players_words.find(player_name);
     if (it != players_words.end()) {
         const char* player_word = it->second;
-        strncpy(word, player_word, word_size - 1);
-        word[word_size - 1] = '\0';
+        strncpy(word, player_word, word_size);
     } else {
         strncpy(word, "", word_size);
     }
