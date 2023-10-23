@@ -85,13 +85,14 @@ data_packet_t playerAttempt(data_packet_t received_data){
     getRightWordForPlayer(username, right_word, WORD_SIZE);
 
     if (right_word[0] == '\0') {
-        cout << "Unknown Player " << username << " tried to attempt an invalid word: " << attempt_word << endl;
+        cout << "Unknown Player " << username << " tried an invalid word: " << attempt_word << endl;
         response.message_type = INVALID_MESSAGE_TYPE;
         return response;
     }
 
     int attempt_answer[WORD_SIZE];
     int score_to_add = 0;
+    cout << "Player " << username << " attempt word: " << attempt_word << " correct word: " << right_word << endl;
     calculateAttemptScore(attempt_word, right_word, attempt_answer, &score_to_add ,WORD_SIZE);
 
     // Check if it's the last attempt

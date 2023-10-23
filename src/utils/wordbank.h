@@ -60,13 +60,11 @@ bool searchWordInFile(const char word[WORD_SIZE]) {
         if (strcasecmp(trimmed_line.c_str(), word) == 0) {
             file.close();
             pthread_mutex_unlock(&wordbank_db_mutex);
-            cout << "Word search finished, Word found: " << word << endl;
             return true;
         }
     }
     file.close();
     pthread_mutex_unlock(&wordbank_db_mutex);
-    cout << "Word search finished, Word not found: " << word << endl;
     return false;
 }
 
