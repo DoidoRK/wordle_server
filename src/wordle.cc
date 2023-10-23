@@ -29,7 +29,6 @@ void calculateAttemptScore(const char* attempt_word, const char* right_word, int
     for (size_t i = 0; i < word_size; i++) {
         attempt_answer[i] = CHARACTER_IS_WRONG;
     }
-
     // First, find and mark the correct characters in the correct positions
     for (size_t i = 0; i < word_size; i++) {
         if (attempt_word[i] == right_word[i]) {
@@ -37,7 +36,6 @@ void calculateAttemptScore(const char* attempt_word, const char* right_word, int
             *score_to_add += CHARACTER_IS_CORRECT_SCORE;
         }
     }
-
     // Then, find and mark characters that are correct but in the wrong position
     for (size_t i = 0; i < word_size; i++) {
         if (attempt_answer[i] != CHARACTER_IS_CORRECT) {
@@ -49,17 +47,7 @@ void calculateAttemptScore(const char* attempt_word, const char* right_word, int
                 }
             }
         }
-    }
-    for (size_t i = 0; i < WORD_SIZE; i++)
-    {
-        cout << attempt_answer;
-    }
-    cout << endl;
-    for (size_t i = 0; i < WORD_SIZE; i++)
-    {
-        cout << attempt_word[i] << ':'<< right_word[i] << endl;
-    }
-    
+    }    
 }
 
 data_packet_t playerNewWord(data_packet_t received_data){
@@ -104,8 +92,6 @@ data_packet_t playerAttempt(data_packet_t received_data){
 
     int attempt_answer[WORD_SIZE];
     int score_to_add = 0;
-    cout << "Tentativa " << attempt_word << endl;
-    cout << "Palavra certa " << right_word << endl;
     calculateAttemptScore(attempt_word, right_word, attempt_answer, &score_to_add ,WORD_SIZE);
 
     // Check if it's the last attempt
