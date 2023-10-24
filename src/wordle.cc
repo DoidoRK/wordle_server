@@ -125,6 +125,7 @@ data_packet_t getHighscore(data_packet_t received_data){
         strcpy(response.highscores[i].username,highscore[i].username);
         response.highscores[i].score = highscore[i].score;
     }
+    response.player.score = getPlayerScore(received_data.player.username);
     return response;
 }
 
@@ -140,10 +141,6 @@ data_packet_t threatMessage(data_packet_t received_data){
         case PLAYER_ATTEMPT:
             cout << "Message:" << printMessage(received_data.message_type) << " from " << received_data.player.username << endl;
             response = playerAttempt(received_data);
-            for (int i = 0; i < HIGHSCORE_SIZE; i++)
-            {
-                cout << "PLAYER:" << highscore[i].username << " SCORE " << highscore[i].score << endl;
-            }
             break;
 
         case GET_HIGHSCORE:
