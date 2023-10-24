@@ -83,32 +83,37 @@ void updatePlayerScore(const string& player_name, int attempt_score) {
 }
 
 // Comparison function for sorting pairs by score (in descending order)
-bool compareByScore(const pair<string, int>& a, const pair<string, int>& b) {
-    return a.second > b.second;
+bool compareByScore(const highscore_t& a, const highscore_t& b) {
+    return a.score > b.score;
 }
 
 // Function to sort the player_database map and store the result in highscore array
 void loadPlayerRanking() {
-    // Create a vector of pairs (player name, score) from the map
-    vector<pair<string, int>> player_vector;
+    // Create an array of highscore_t to store sorted data
+    highscore_t highscore_from_playerbase[HIGHSCORE_SIZE];
+
+    int i = 0;
     for (const auto& entry : player_database) {
-        player_vector.push_back(entry);
+        // Copy player data to the temporary array
+        strncpy(highscore_from_playerbase[i].username, entry.first.c_str(), MAX_PLAYERNAME_SIZE);
+        highscore_from_playerbase[i].score = entry.second;
+        i++;
     }
 
-    // Sort the vector in descending order of scores
-    sort(player_vector.begin(), player_vector.end(), compareByScore);
+    // Sort the highscore_t array in descending order of scores
+    sort(highscore_from_playerbase, highscore_from_playerbase + HIGHSCORE_SIZE, compareByScore);
 
     // Ensure the highscore array is filled with default values first
-    for (int i = 0; i < HIGHSCORE_SIZE; i++) {
-        strncpy(highscore[i].username, "-----", MAX_PLAYERNAME_SIZE);
-        highscore[i].score = 0;
+    for (int j = 0; j < HIGHSCORE_SIZE; j++) {
+        strncpy(highscore[j].username, "-----", MAX_PLAYERNAME_SIZE);
+        highscore[j].score = 0;
     }
 
     // Copy the sorted data into the highscore array, up to the available size
-    int copy_count = min(HIGHSCORE_SIZE, static_cast<int>(player_vector.size()));
-    for (int i = 0; i < copy_count; i++) {
-        strncpy(highscore[i].username, player_vector[i].first.c_str(), MAX_PLAYERNAME_SIZE);
-        highscore[i].score = player_vector[i].second;
+    int copy_count = min(HIGHSCORE_SIZE, i);
+    for (int j = 0; j < copy_count; j++) {
+        strncpy(highscore[j].username, highscore_from_playerbase[j].username, MAX_PLAYERNAME_SIZE);
+        highscore[j].score = highscore_from_playerbase[j].score;
     }
 }
 
@@ -116,27 +121,43 @@ void loadPlayerRanking() {
 //Updates the player ranking
 void updatePlayerRanking(const char player_name[MAX_PLAYERNAME_SIZE], int player_score) {
     pthread_mutex_lock(&highscore_mutex);
-    //If the player is in the highscore, updates tthe player score in the highscore
-    //And then procceeds to sort the player rankings.
-    //***WIP***
-    // Find the position to insert the player
-    int insert_position = HIGHSCORE_SIZE;
-    while (insert_position > 0 && player_score > highscore[insert_position - 1].score) {
-        insert_position--;
+    
+    // Check if the player is already in the highscore
+    int player_position = -1;
+    for (int i = 0; i < HIGHSCORE_SIZE; i++) {
+        if (strcmp(highscore[i].username, player_name) == 0) {
+            player_position = i;
+            break;
+        }
     }
 
-    // Only update the ranking if the player's score is higher
-    if (insert_position < HIGHSCORE_SIZE) {
-        // Shift down the lower-ranked players to make room for the new player
-        for (int i = HIGHSCORE_SIZE - 1; i > insert_position; i--) {
-            strcpy(highscore[i].username, highscore[i - 1].username);
-            highscore[i].score = highscore[i - 1].score;
+    // If the player is in the highscore, update their score
+    if (player_position != -1) {
+        highscore[player_position].score = player_score;
+    } else {
+        // Find the position to insert the player
+        int insert_position = HIGHSCORE_SIZE;
+        while (insert_position > 0 && player_score > highscore[insert_position - 1].score) {
+            insert_position--;
         }
 
-        // Insert the new player into the ranking
-        strncpy(highscore[insert_position].username, player_name, MAX_PLAYERNAME_SIZE);
-        highscore[insert_position].score = player_score;
+        // Only update the ranking if the player's score is higher
+        if (insert_position < HIGHSCORE_SIZE) {
+            // Shift down the lower-ranked players to make room for the new player
+            for (int i = HIGHSCORE_SIZE - 1; i > insert_position; i--) {
+                strcpy(highscore[i].username, highscore[i - 1].username);
+                highscore[i].score = highscore[i - 1].score;
+            }
+
+            // Insert the new player into the ranking
+            strncpy(highscore[insert_position].username, player_name, MAX_PLAYERNAME_SIZE);
+            highscore[insert_position].score = player_score;
+        }
     }
+    
+    // Sort the ranking
+    sort(highscore, highscore + HIGHSCORE_SIZE, compareByScore);
+    
     pthread_mutex_unlock(&highscore_mutex);
 }
 
