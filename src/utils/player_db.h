@@ -98,11 +98,20 @@ void loadPlayerRanking() {
     // Sort the vector in descending order of scores
     sort(player_vector.begin(), player_vector.end(), compareByScore);
 
-    // Copy the sorted data into the highscore array
+    // Ensure the highscore array is filled with default values first
     for (int i = 0; i < HIGHSCORE_SIZE; i++) {
+        strncpy(highscore[i].username, "-----", MAX_PLAYERNAME_SIZE);
+        highscore[i].score = 0;
+    }
+
+    // Copy the sorted data into the highscore array, up to the available size
+    int copy_count = min(HIGHSCORE_SIZE, static_cast<int>(player_vector.size()));
+    for (int i = 0; i < copy_count; i++) {
         strncpy(highscore[i].username, player_vector[i].first.c_str(), MAX_PLAYERNAME_SIZE);
+        highscore[i].score = player_vector[i].second;
     }
 }
+
 
 //Updates the player ranking
 void updatePlayerRanking(const char player_name[MAX_PLAYERNAME_SIZE], int player_score) {
