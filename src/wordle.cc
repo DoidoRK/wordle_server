@@ -106,6 +106,7 @@ data_packet_t playerAttempt(data_packet_t received_data){
 
     if ( 0 < score_to_add) {
         updatePlayerScore(username, score_to_add);
+        updatePlayerRanking(username, getPlayerScore(username));
     }
     response.player.score = getPlayerScore(username);
 
@@ -116,29 +117,29 @@ data_packet_t playerAttempt(data_packet_t received_data){
     return response;
 }
 
+data_packet_t getHighscore(data_packet_t received_data){
+    data_packet_t response;
+    response.message_type = GET_HIGHSCORE;
+    memcpy(response.highscores,highscore,HIGHSCORE_SIZE*sizeof(highscore_t));
+    return response;
+}
+
 data_packet_t threatMessage(data_packet_t received_data){
     data_packet_t response;
     cout << "Message:" << printMessage(received_data.message_type) << " from " << received_data.player.username << endl;
     switch (received_data.message_type)
     {        
         case PLAYER_NEW_WORD:
-            // If the message type is this, it means that the player 
-            // failed in his attempts and a new word must be draw.
             response = playerNewWord(received_data);
             break;
 
         case PLAYER_ATTEMPT:
-            //Verifies if the player attempt is less than the maximun attempts.
-            //Checks if the received word is the same as the word chosen for the player.
-            
             response = playerAttempt(received_data);
             break;
 
         case GET_HIGHSCORE:
-            //Returns the current highscore to the game client
-            cout << "Get Highscore message received" << endl;
+            response = getHighscore(received_data);
             break;
-
 
         default:
             cout << "Unknown message type received: " << received_data.message_type << endl;
