@@ -12,7 +12,6 @@
 #define CHARACTER_IS_IN_WORD 3
 #define CHARACTER_IS_CORRECT_SCORE 5
 #define CHARACTER_IS_IN_WORD_SCORE 2
-#define HIGHSCORE_PLAYER_NUM 5
 #define HIGHSCORE_SIZE 5
 
 using namespace std;

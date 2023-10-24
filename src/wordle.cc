@@ -22,6 +22,7 @@ string  printMessage(long unsigned int message) {
 
 void initWordle(){
     loadPlayerDatabase();
+    loadPlayerRanking();
 }
 
 void calculateAttemptScore(const char* attempt_word, const char* right_word, int* attempt_answer, int* score_to_add, size_t word_size) {
