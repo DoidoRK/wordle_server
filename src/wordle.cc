@@ -2,7 +2,6 @@
 #include "wordle.h"
 #include "utils/player_db.h"
 #include "utils/wordbank.h"
-#include "utils/ranking_db.h"
 
 const char* message_strings[] = {
     "INVALID_MESSAGE_TYPE",
