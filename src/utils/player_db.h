@@ -115,8 +115,10 @@ void loadPlayerRanking() {
 
 //Updates the player ranking
 void updatePlayerRanking(const char player_name[MAX_PLAYERNAME_SIZE], int player_score) {
-     pthread_mutex_lock(&highscore_mutex);
-
+    pthread_mutex_lock(&highscore_mutex);
+    //If the player is in the highscore, updates tthe player score in the highscore
+    //And then procceeds to sort the player rankings.
+    //***WIP***
     // Find the position to insert the player
     int insert_position = HIGHSCORE_SIZE;
     while (insert_position > 0 && player_score > highscore[insert_position - 1].score) {
@@ -135,7 +137,6 @@ void updatePlayerRanking(const char player_name[MAX_PLAYERNAME_SIZE], int player
         strncpy(highscore[insert_position].username, player_name, MAX_PLAYERNAME_SIZE);
         highscore[insert_position].score = player_score;
     }
-
     pthread_mutex_unlock(&highscore_mutex);
 }
 

@@ -29,7 +29,6 @@ void * handleConnection(void *p_client_socket){
     data_packet_t message, response;
     recv(client_socket, &message, sizeof(data_packet_t), 0);
     response = threatMessage(message);
-
     send(client_socket, &response, sizeof(data_packet_t), 0);
 
     close(client_socket);

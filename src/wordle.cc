@@ -120,21 +120,30 @@ data_packet_t playerAttempt(data_packet_t received_data){
 data_packet_t getHighscore(data_packet_t received_data){
     data_packet_t response;
     response.message_type = GET_HIGHSCORE;
-    memcpy(response.highscores,highscore,HIGHSCORE_SIZE*sizeof(highscore_t));
+    for (size_t i = 0; i < HIGHSCORE_SIZE; i++)
+    {
+        strcpy(response.highscores[i].username,highscore[i].username);
+        response.highscores[i].score = highscore[i].score;
+    }
     return response;
 }
 
 data_packet_t threatMessage(data_packet_t received_data){
     data_packet_t response;
-    cout << "Message:" << printMessage(received_data.message_type) << " from " << received_data.player.username << endl;
     switch (received_data.message_type)
     {        
         case PLAYER_NEW_WORD:
+            cout << "Message:" << printMessage(received_data.message_type) << " from " << received_data.player.username << endl;
             response = playerNewWord(received_data);
             break;
 
         case PLAYER_ATTEMPT:
+            cout << "Message:" << printMessage(received_data.message_type) << " from " << received_data.player.username << endl;
             response = playerAttempt(received_data);
+            for (int i = 0; i < HIGHSCORE_SIZE; i++)
+            {
+                cout << "PLAYER:" << highscore[i].username << " SCORE " << highscore[i].score << endl;
+            }
             break;
 
         case GET_HIGHSCORE:
