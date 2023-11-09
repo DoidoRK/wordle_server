@@ -61,10 +61,12 @@ data_packet_t playerNewWord(data_packet_t received_data){
 
 
 data_packet_t playerAttempt(data_packet_t received_data){
+    attempt_t attempt_result;
     data_packet_t response;
     const char* username = received_data.player.username;
     const char* attempt_word = received_data.player.current_attempt.word;
     const int attempt_number = received_data.player.attempt_n;
+    strcpy(attempt_result.word,received_data.player.current_attempt.word);
 
     // Check if the player exceeded the maximum attempts
     if (attempt_number >= MAX_ATTEMPTS) {
@@ -94,6 +96,8 @@ data_packet_t playerAttempt(data_packet_t received_data){
     int score_to_add = 0;
     cout << "Player " << username << " attempt word: " << attempt_word << " correct word: " << right_word << endl;
     calculateAttemptScore(attempt_word, right_word, attempt_answer, &score_to_add ,WORD_SIZE);
+    memcpy(attempt_result.colors,attempt_answer,sizeof(attempt_answer));
+    
 
     // Check if it's the last attempt
     if (attempt_number == MAX_ATTEMPTS - 1) {
@@ -109,6 +113,7 @@ data_packet_t playerAttempt(data_packet_t received_data){
         updatePlayerRanking(username, getPlayerScore(username));
     }
     response.player.score = getPlayerScore(username);
+    response.player.current_attempt = attempt_result;
 
     if (response.message_type == PLAYER_NEW_WORD) {
         updatePlayersWords(username, WORD_SIZE);
